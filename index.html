@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Color Guessing Game</title>
+  <link rel="stylesheet" href="./style.css">
+</head>
+<style>
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  body {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    height: 100vh;
+    background-color: #f4f4f4;
+  }
+
+  h1, h2 {
+    margin-bottom: 10px;
+  }
+
+  .target-color {
+    width: 150px;
+    height: 150px;
+    border: 3px solid black;
+    margin: 20px;
+  }
+
+  .colorboxes {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    justify-content: center;
+    max-width: 400px;
+  }
+
+  .colorBox {
+    width: 100px;
+    height: 100px;
+    border: 2px solid black;
+    cursor: pointer;
+  }
+
+  .message {
+    margin-top: 15px;
+    font-size: 18px;
+    font-weight: bold;
+  }
+
+  .score {
+    margin-top: 10px;
+    font-size: 16px;
+  }
+
+  .new-game {
+    margin-top: 20px;
+    padding: 10px 20px;
+    font-size: 16px;
+    cursor: pointer;
+    background-color: blue;
+    color: white;
+    border: none;
+    border-radius: 5px;
+  }
+</style>
+<body>
+
+  <h1>Color Guessing Game</h1>
+  <h2 data-testid="gameInstructions">Guess the correct color!</h2>
+  <div class="target-color" id="targetColorBox" data-testid="colorBox"></div>
+
+  <div class="colorboxes">
+    <div class="colorBox" data-testid="colorOption"></div>
+    <div class="colorBox" data-testid="colorOption"></div>
+    <div class="colorBox" data-testid="colorOption"></div>
+    <div class="colorBox" data-testid="colorOption"></div>
+    <div class="colorBox" data-testid="colorOption"></div>
+    <div class="colorBox" data-testid="colorOption"></div>
+  </div>
+
+  <p class="message" id="gameStatus" data-testid="gameStatus"></p>
+  <p class="score" id="score" data-testid="score">Score: 0</p>
+
+  <button class="new-game" id="newGameButton" data-testid="newGameButton">New Game</button>
+
+  <script>
+    const colors = ["red", "blue", "green", "yellow", "purple", "orange", "pink", "brown", "cyan", "lime"];
+    let score = 0;
+
+    function getRandomColor(exclude = []) {
+      let availableColors = colors.filter(color => !exclude.includes(color));
+      return availableColors[Math.floor(Math.random() * availableColors.length)];
+    }
+
+    function shuffleArray(array) {
+      return array.sort(() => Math.random() - 0.5);
+    }
+
+    function speak(text) {
+      const speech = new SpeechSynthesisUtterance(text);
+      speech.lang = "en-US";
+      speech.volume = 1;
+      speech.rate = 1;
+      speech.pitch = 1;
+      window.speechSynthesis.speak(speech);
+    }
+
+    function startGame() {
+      let answerChoices = new Set();
+      const targetColor = getRandomColor();
+      answerChoices.add(targetColor);
+
+      while (answerChoices.size < 6) {
+        answerChoices.add(getRandomColor([...answerChoices]));
+      }
+
+      let answerArray = shuffleArray([...answerChoices]);
+
+      document.getElementById("targetColorBox").style.backgroundColor = targetColor;
+
+      const colorBoxes = document.querySelectorAll(".colorBox");
+      colorBoxes.forEach((box, index) => {
+        box.style.backgroundColor = answerArray[index];
+        box.onclick = () => checkGuess(answerArray[index], targetColor);
+      });
+
+      document.getElementById("gameStatus").textContent = "";
+      speak(`New game started! Guess the color.`);
+    }
+
+    function checkGuess(selectedColor, targetColor) {
+      if (selectedColor === targetColor) {
+        score++;
+        document.getElementById("gameStatus").textContent = "Correct! 🎉";
+        speak("Correct! Well done!");
+      } else {
+        document.getElementById("gameStatus").textContent = "Wrong! Try again. ❌";
+        speak("Wrong! Try again.");
+      }
+      document.getElementById("score").textContent = `Score: ${score}`;
+    }
+
+    document.getElementById("newGameButton").addEventListener("click", startGame);
+
+    startGame();
+  </script>
+
+</body>
+</html>
